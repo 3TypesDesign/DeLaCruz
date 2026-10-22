@@ -161,6 +161,8 @@ footer .brand{font-family:'Montserrat',sans-serif;font-weight:700;letter-spacing
 footer .sub{font-size:12.5px;color:var(--ink-2);margin-top:4px}
 footer .credit{font-size:11.5px;color:var(--ink-2);margin-top:16px}
 
+.alt-mail{display:block;margin:-2px auto 12px;min-height:36px;padding:0 12px;border:0;background:none;color:var(--ink-2);font:600 13px 'Cabin',sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+
 /* EMAIL CHOOSER */
 .sheet{border:0;padding:0;margin:auto auto 0;width:100%;max-width:460px;background:transparent;color:var(--ink)}
 .sheet::backdrop{background:rgba(10,18,36,.55)}
@@ -302,10 +304,11 @@ footer .credit{font-size:11.5px;color:var(--ink-2);margin-top:16px}
       <div class="t"><b>Llámenos</b><small>+1 (786) 862-4924</small></div>
     </a>
 
-    <a class="row" id="email-btn" href="mailto:info@delacruztaxes.com?subject=Quiero%20m%C3%A1s%20informaci%C3%B3n" aria-haspopup="dialog">
+    <a class="row" id="email-btn" href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=info@delacruztaxes.com&amp;su=Quiero%20m%C3%A1s%20informaci%C3%B3n" target="_blank" rel="noopener">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M4 7l8 6 8-6"/></svg>
       <div class="t"><b>Envíenos un email</b><small>info@delacruztaxes.com</small></div>
     </a>
+    <button class="alt-mail" type="button" id="other-mail" aria-haspopup="dialog">¿Usa otro correo? Ver opciones</button>
 
     <div class="socials">
       <a href="https://www.instagram.com/serviciosdelacruz_/" target="_blank" rel="noopener">
@@ -357,14 +360,34 @@ footer .credit{font-size:11.5px;color:var(--ink-2);margin-top:16px}
     yahoo: 'https://compose.mail.yahoo.com/?to=' + to + '&subject=' + su + '&body=' + body,
     app: 'mailto:' + to + '?subject=' + su + '&body=' + body
   };
+  var ua = navigator.userAgent || '';
+  var isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var isAndroid = /Android/.test(ua);
+
+  // Botón principal: abre directo la caja de redacción de Gmail con el email ya puesto
+  function openGmail(){
+    if (isIOS) {
+      // App de Gmail en iPhone; si no está instalada, abre Gmail web
+      var fallback = setTimeout(function(){ if (!document.hidden) location.href = links.gmail; }, 1500);
+      document.addEventListener('visibilitychange', function(){ if (document.hidden) clearTimeout(fallback); }, { once: true });
+      location.href = 'googlegmail:///co?to=' + to + '&subject=' + su + '&body=' + body;
+    } else if (isAndroid) {
+      // En Android el correo del sistema es Gmail
+      location.href = links.app;
+    } else {
+      window.open(links.gmail, '_blank', 'noopener');
+    }
+  }
+  document.getElementById('email-btn').addEventListener('click', function(e){ e.preventDefault(); openGmail(); });
+
   var sheet = document.getElementById('email-sheet');
-  var btn = document.getElementById('email-btn');
-  if (!sheet || typeof sheet.showModal !== 'function') return; // sin soporte: queda el mailto
+  var other = document.getElementById('other-mail');
+  if (!sheet || typeof sheet.showModal !== 'function') { other.hidden = true; return; }
 
   sheet.querySelectorAll('[data-mail]').forEach(function(a){ a.href = links[a.dataset.mail]; });
   sheet.querySelectorAll('[data-mail]').forEach(function(a){ a.addEventListener('click', function(){ sheet.close(); }); });
 
-  btn.addEventListener('click', function(e){ e.preventDefault(); sheet.showModal(); });
+  other.addEventListener('click', function(){ sheet.showModal(); });
   document.getElementById('close-email').addEventListener('click', function(){ sheet.close(); });
   sheet.addEventListener('click', function(e){ if (e.target === sheet) sheet.close(); });
 
